@@ -24,6 +24,12 @@ impl PyPresentation {
         Ok(Self { core })
     }
 
+    #[classmethod]
+    pub fn new(_cls: &Bound<'_, PyType>) -> PyResult<Self> {
+        let core = core::presentation::Presentation::new().map_err(errors::to_py_err)?;
+        Ok(Self { core })
+    }
+
     pub fn save(&self, path: &str) -> PyResult<()> {
         self.core.save(path).map_err(errors::to_py_err)
     }
@@ -43,5 +49,10 @@ impl PyPresentation {
         self.core
             .replace_text(needle, replacement)
             .map_err(errors::to_py_err)
+    }
+
+    pub fn add_slide(&mut self) -> PyResult<crate::pyo3::slide::PySlide> {
+        let slide = self.core.add_slide().map_err(errors::to_py_err)?;
+        Ok(crate::pyo3::slide::PySlide::new(slide))
     }
 }

@@ -30,6 +30,10 @@ class Presentation:
     def from_bytes(cls, data: bytes) -> "Presentation":
         ...
 
+    @classmethod
+    def new(cls) -> "Presentation":
+        ...
+
     def save(self, path: str) -> None:
         ...
 
@@ -42,10 +46,13 @@ class Presentation:
 
     def replace_text(self, needle: str, replacement: str) -> int:
         ...
+
+    def add_slide(self) -> "Slide":
+        ...
 ```
 
 Status:
-- **Implemented (0.1)**: `open`, `from_bytes`, `save`, `to_bytes`, `slides`, `replace_text`
+- **Implemented (0.1)**: `open`, `from_bytes`, `new`, `save`, `to_bytes`, `slides`, `replace_text`, `add_slide`
 
 ### 2.2 Slides
 
@@ -81,10 +88,13 @@ class Slide:
 
     def copy_to(self, presentation: "Presentation") -> "Slide":
         ...
+
+    def add_textbox(self, text: str, name: str | None = None) -> "Shape":
+        ...
 ```
 
 Status:
-- **Implemented (0.1)**: `index`, `shapes`, `replace_text`
+- **Implemented (0.1)**: `index`, `shapes`, `replace_text`, `add_textbox`
 - **Stub (0.1)**: `copy_to`
 
 ### 2.4 Shapes

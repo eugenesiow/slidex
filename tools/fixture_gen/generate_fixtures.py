@@ -37,9 +37,18 @@ def text_only() -> None:
     prs.save(FIXTURES / "text_only.pptx")
 
 
+def blank_template() -> None:
+    assets = ROOT / "assets"
+    assets.mkdir(parents=True, exist_ok=True)
+    prs = Presentation()
+    prs.slides.add_slide(prs.slide_layouts[6])
+    prs.save(assets / "blank.pptx")
+
+
 def main() -> None:
     title_and_content()
     text_only()
+    blank_template()
 
 
 if __name__ == "__main__":

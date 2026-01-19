@@ -28,13 +28,13 @@ impl PySlides {
             return Err(errors::not_implemented("Slides.__getitem__ out of range"));
         }
         let slide = self.items[idx as usize].clone();
-        Ok(PySlide { slide })
+        Ok(PySlide::new(slide))
     }
 
     pub fn __iter__(&self, py: Python<'_>) -> PyResult<Py<PyAny>> {
         let mut out = Vec::with_capacity(self.items.len());
         for slide in &self.items {
-            let py_slide = Py::new(py, PySlide { slide: slide.clone() })?;
+            let py_slide = Py::new(py, PySlide::new(slide.clone()))?;
             out.push(py_slide.into_any());
         }
         let list = PyList::new(py, &out)?;
@@ -45,6 +45,12 @@ impl PySlides {
 #[pyclass(name = "Slide", unsendable)]
 pub struct PySlide {
     slide: SlideRef,
+}
+
+impl PySlide {
+    pub fn new(slide: SlideRef) -> Self {
+        Self { slide }
+    }
 }
 
 #[pymethods]
@@ -68,5 +74,18 @@ impl PySlide {
 
     pub fn copy_to(&self, _presentation: &Bound<'_, PyAny>) -> PyResult<PySlide> {
         Err(errors::not_implemented("Slide.copy_to"))
+    }
+
+    #[pyo3(signature = (text, name=None))]
+    pub fn add_textbox(
+        &self,
+        text: &str,
+        name: Option<&str>,
+    ) -> PyResult<crate::pyo3::shape::PyShape> {
+        let shape = self
+            .slide
+            .add_textbox(text, name)
+            .map_err(errors::to_py_err)?;
+        Ok(crate::pyo3::shape::PyShape::new(shape))
     }
 }

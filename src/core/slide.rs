@@ -49,4 +49,21 @@ impl SlideRef {
     pub fn path(&self) -> &str {
         &self.path
     }
+
+    pub fn add_textbox(&self, text: &str, name: Option<&str>) -> Result<ShapeRef> {
+        let mut package = self.package.borrow_mut();
+        let part = package
+            .get_part_mut(&self.path)
+            .ok_or(CoreError::MissingPart("slide xml"))?;
+        let next_id = xml::max_shape_id(&part.data)?.saturating_add(1);
+        let shape_name = name.unwrap_or("TextBox");
+        let updated = xml::append_text_shape(&part.data, next_id, shape_name, text)?;
+        part.data = updated;
+        let shapes = xml::parse_shapes(&part.data)?;
+        let last = shapes
+            .into_iter()
+            .find(|shape| shape.id == next_id)
+            .ok_or(CoreError::InvalidPackage("shape append failed"))?;
+        Ok(ShapeRef::new(last, &self.path, self.package.clone()))
+    }
 }

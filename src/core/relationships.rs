@@ -40,3 +40,34 @@ pub fn parse_relationships(bytes: &[u8]) -> Result<HashMap<String, String>> {
 
     Ok(rels)
 }
+
+pub fn append_relationship(rels_xml: &[u8], rel_id: &str, target: &str) -> Result<Vec<u8>> {
+    let xml_text = std::str::from_utf8(rels_xml)
+        .map_err(|_| CoreError::InvalidPackage("rels not utf-8"))?;
+    let marker = "</Relationships>";
+    let insert = format!(
+        "<Relationship Id=\"{rel_id}\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide\" Target=\"{target}\"/>"
+    );
+    if let Some(pos) = xml_text.find(marker) {
+        let mut out = String::with_capacity(xml_text.len() + insert.len());
+        out.push_str(&xml_text[..pos]);
+        out.push_str(&insert);
+        out.push_str(&xml_text[pos..]);
+        Ok(out.into_bytes())
+    } else {
+        Err(CoreError::InvalidPackage("rels missing Relationships root"))
+    }
+}
+
+pub fn next_relationship_id(rels_xml: &[u8]) -> Result<String> {
+    let rels = parse_relationships(rels_xml)?;
+    let mut max_id = 0u32;
+    for key in rels.keys() {
+        if let Some(num) = key.strip_prefix("rId") {
+            if let Ok(value) = num.parse::<u32>() {
+                max_id = max_id.max(value);
+            }
+        }
+    }
+    Ok(format!("rId{}", max_id + 1))
+}

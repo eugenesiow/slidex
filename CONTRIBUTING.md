@@ -1,6 +1,13 @@
 # Contributing to slidex
 
-Thanks for helping build slidex.
+Thanks for helping build slidex. This guide focuses on developer setup,
+tooling, and project conventions.
+
+## Prerequisites
+
+- Python 3.9+
+- Rust toolchain (stable)
+- `uv` for Python dependency management
 
 ## Development setup (uv)
 
@@ -10,7 +17,7 @@ uv pip install maturin pytest
 uv run maturin develop
 ```
 
-## Tests
+## Running tests
 
 Python tests:
 
@@ -18,10 +25,10 @@ Python tests:
 uv run pytest tests/python
 ```
 
-Rust tests:
+Rust tests (core only):
 
 ```bash
-cargo test --all
+cargo test
 ```
 
 ## Fixture generation (dev-only)
@@ -36,6 +43,26 @@ source .venv/bin/activate
 pip install -e .
 python generate_fixtures.py
 ```
+
+This also produces a template PPTX used by `Presentation.new()` when available.
+
+## Fixture comparison (dev-only)
+
+Use the comparison script to validate generated output against a golden deck.
+
+```bash
+python tools/fixture_compare/compare_pptx.py \
+  tests/fixtures/generated/simple/title_and_content.pptx \
+  path/to/output.pptx
+```
+
+## Project layout
+
+- `src/` Rust core and PyO3 module
+- `python/slidex/` Python package and stubs
+- `docs/` design and architecture docs
+- `tests/` Rust and Python tests
+- `tools/` dev-only tooling (fixture generation/comparison)
 
 ## Style
 

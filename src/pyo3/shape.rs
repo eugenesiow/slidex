@@ -28,13 +28,13 @@ impl PyShapes {
             return Err(errors::not_implemented("Shapes.__getitem__ out of range"));
         }
         let shape = self.items[idx as usize].clone();
-        Ok(PyShape { shape })
+        Ok(PyShape::new(shape))
     }
 
     pub fn __iter__(&self, py: Python<'_>) -> PyResult<Py<PyAny>> {
         let mut out = Vec::with_capacity(self.items.len());
         for shape in &self.items {
-            let py_shape = Py::new(py, PyShape { shape: shape.clone() })?;
+            let py_shape = Py::new(py, PyShape::new(shape.clone()))?;
             out.push(py_shape.into_any());
         }
         let list = PyList::new(py, &out)?;
@@ -54,7 +54,7 @@ impl PyShapes {
                     continue;
                 }
             }
-            out.push(PyShape { shape: shape.clone() });
+            out.push(PyShape::new(shape.clone()));
         }
         Ok(out)
     }
@@ -63,6 +63,12 @@ impl PyShapes {
 #[pyclass(name = "Shape", unsendable)]
 pub struct PyShape {
     shape: ShapeRef,
+}
+
+impl PyShape {
+    pub fn new(shape: ShapeRef) -> Self {
+        Self { shape }
+    }
 }
 
 #[pymethods]

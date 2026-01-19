@@ -5,21 +5,23 @@ Rust-backed Python library for reading, modifying, and generating PowerPoint
 
 ## Status
 
-Early scaffolding. APIs and behavior are not stable yet.
+Early development. APIs may change.
 
-## Requirements
+## What it does (today)
 
-- Python 3.9+
-- Rust toolchain (stable)
-- `uv` for Python dependency management
+- Open and save PPTX files
+- Enumerate slides and shapes
+- Read/write text frames
+- Replace text across a slide or presentation
 
-## Quickstart (uv)
+## Install (from source)
+
+slidex is not published yet. Install from source with:
 
 ```bash
 uv venv
-uv pip install maturin pytest
+uv pip install maturin
 uv run maturin develop
-uv run python -c "import slidex; print(slidex)"
 ```
 
 ## Usage
@@ -40,35 +42,23 @@ text.text = "Hello from slidex"
 pres.save("updated.pptx")
 ```
 
-## Development
+Create a new deck from scratch:
 
-Build the extension in editable mode:
+```python
+from slidex import Presentation
 
-```bash
-uv run maturin develop
+pres = Presentation.new()
+slide = pres.add_slide()
+slide.add_textbox("Hello from slidex")
+pres.save("new_deck.pptx")
 ```
 
-Run Python tests:
-
-```bash
-uv run pytest tests/python
-```
-
-Run Rust tests:
-
-```bash
-cargo test --all
-```
-
-## Layout
-
-- `src/` Rust core + PyO3 bridge
-- `python/slidex/` Python package and typing stubs
-- `docs/` design and architecture docs
-- `tests/python/` Python tests
-
-## Docs
+## Documentation
 
 - `docs/DESIGN.md`
 - `docs/ARCHITECTURE.md`
 - `docs/API.md`
+
+## Contributing
+
+See `CONTRIBUTING.md` for developer setup, tests, and fixture tooling.

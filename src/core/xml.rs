@@ -110,6 +110,143 @@ fn extract_attr_value(input: &str, key: &str) -> Option<String> {
     Some(rest[..end].to_string())
 }
 
+pub fn append_slide_id(presentation_xml: &[u8], rel_id: &str, slide_id: u32) -> Result<Vec<u8>> {
+    let xml_text = std::str::from_utf8(presentation_xml)
+        .map_err(|_| CoreError::InvalidPackage("presentation not utf-8"))?;
+    let marker = "</p:sldIdLst>";
+    let insert = format!("<p:sldId id=\"{slide_id}\" r:id=\"{rel_id}\"/>");
+    if let Some(pos) = xml_text.find(marker) {
+        let mut out = String::with_capacity(xml_text.len() + insert.len());
+        out.push_str(&xml_text[..pos]);
+        out.push_str(&insert);
+        out.push_str(&xml_text[pos..]);
+        Ok(out.into_bytes())
+    } else {
+        Err(CoreError::InvalidPackage("missing p:sldIdLst"))
+    }
+}
+
+pub fn max_slide_id(presentation_xml: &[u8]) -> Result<u32> {
+    let mut reader = Reader::from_reader(Cursor::new(presentation_xml));
+    reader.config_mut().trim_text(true);
+    let mut buf = Vec::new();
+    let mut max_id = 0u32;
+
+    loop {
+        match reader.read_event_into(&mut buf) {
+            Ok(Event::Start(e)) | Ok(Event::Empty(e)) if is_element(e.name().as_ref(), b"sldId") => {
+                for attr in e.attributes().flatten() {
+                    if local_name(attr.key.as_ref()) == b"id" {
+                        if let Ok(id) = attr.unescape_value()?.parse::<u32>() {
+                            max_id = max_id.max(id);
+                        }
+                    }
+                }
+            }
+            Ok(Event::Eof) => break,
+            Err(err) => return Err(CoreError::Xml(err.to_string())),
+            _ => {}
+        }
+        buf.clear();
+    }
+
+    Ok(max_id)
+}
+
+pub fn append_content_type_override(
+    content_types_xml: &[u8],
+    part_name: &str,
+    content_type: &str,
+) -> Result<Vec<u8>> {
+    let xml_text = std::str::from_utf8(content_types_xml)
+        .map_err(|_| CoreError::InvalidPackage("content types not utf-8"))?;
+    let marker = "</Types>";
+    let insert = format!(
+        "<Override PartName=\"{part_name}\" ContentType=\"{content_type}\"/>"
+    );
+    if let Some(pos) = xml_text.find(marker) {
+        let mut out = String::with_capacity(xml_text.len() + insert.len());
+        out.push_str(&xml_text[..pos]);
+        out.push_str(&insert);
+        out.push_str(&xml_text[pos..]);
+        Ok(out.into_bytes())
+    } else {
+        Err(CoreError::InvalidPackage("content types missing Types root"))
+    }
+}
+
+pub fn max_shape_id(slide_xml: &[u8]) -> Result<u32> {
+    let mut reader = Reader::from_reader(Cursor::new(slide_xml));
+    reader.config_mut().trim_text(true);
+    let mut buf = Vec::new();
+    let mut max_id = 0u32;
+
+    loop {
+        match reader.read_event_into(&mut buf) {
+            Ok(Event::Start(e)) | Ok(Event::Empty(e)) if is_element(e.name().as_ref(), b"cNvPr") => {
+                for attr in e.attributes().flatten() {
+                    if local_name(attr.key.as_ref()) == b"id" {
+                        if let Ok(id) = attr.unescape_value()?.parse::<u32>() {
+                            max_id = max_id.max(id);
+                        }
+                    }
+                }
+            }
+            Ok(Event::Eof) => break,
+            Err(err) => return Err(CoreError::Xml(err.to_string())),
+            _ => {}
+        }
+        buf.clear();
+    }
+
+    Ok(max_id)
+}
+
+pub fn append_text_shape(slide_xml: &[u8], shape_id: u32, name: &str, text: &str) -> Result<Vec<u8>> {
+    let xml_text = std::str::from_utf8(slide_xml)
+        .map_err(|_| CoreError::InvalidPackage("slide not utf-8"))?;
+    let marker = "</p:spTree>";
+    let safe_text = escape_xml(text);
+    let safe_name = escape_xml(name);
+    let insert = format!(
+        "<p:sp>\
+<p:nvSpPr>\
+<p:cNvPr id=\"{shape_id}\" name=\"{safe_name}\"/>\
+<p:cNvSpPr txBox=\"1\"/>\
+<p:nvPr/>\
+</p:nvSpPr>\
+<p:spPr>\
+<a:xfrm><a:off x=\"1000000\" y=\"1000000\"/><a:ext cx=\"1000000\" cy=\"1000000\"/></a:xfrm>\
+<a:prstGeom prst=\"rect\"><a:avLst/></a:prstGeom>\
+<a:noFill/>\
+</p:spPr>\
+<p:txBody>\
+<a:bodyPr wrap=\"none\"><a:spAutoFit/></a:bodyPr>\
+<a:lstStyle/>\
+<a:p><a:r><a:t>{safe_text}</a:t></a:r></a:p>\
+</p:txBody>\
+</p:sp>"
+    );
+    if let Some(pos) = xml_text.find(marker) {
+        let mut out = String::with_capacity(xml_text.len() + insert.len());
+        out.push_str(&xml_text[..pos]);
+        out.push_str(&insert);
+        out.push_str(&xml_text[pos..]);
+        Ok(out.into_bytes())
+    } else {
+        Err(CoreError::InvalidPackage("missing p:spTree"))
+    }
+}
+
+fn escape_xml(value: &str) -> String {
+    value
+        .replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('\"', "&quot;")
+        .replace('\'', "&apos;")
+}
+
 pub fn parse_shapes(slide_xml: &[u8]) -> Result<Vec<ShapeDescriptor>> {
     let mut reader = Reader::from_reader(Cursor::new(slide_xml));
     reader.config_mut().trim_text(true);

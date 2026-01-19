@@ -89,6 +89,10 @@ pub struct Package {
 }
 
 impl Package {
+    pub fn new(parts: HashMap<String, Part>) -> Self {
+        Self { parts }
+    }
+
     pub fn open(path: &str) -> Result<Self> {
         let bytes = std::fs::read(path)?;
         Self::from_bytes(&bytes)
@@ -136,6 +140,10 @@ impl Package {
 
     pub fn get_part_mut(&mut self, path: &str) -> Option<&mut Part> {
         self.parts.get_mut(path)
+    }
+
+    pub fn insert_part(&mut self, part: Part) {
+        self.parts.insert(part.path.clone(), part);
     }
 
     pub fn parts(&self) -> impl Iterator<Item = &Part> {

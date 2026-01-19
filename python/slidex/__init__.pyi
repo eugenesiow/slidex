@@ -30,6 +30,10 @@ class Presentation:
     def from_bytes(cls, data: bytes) -> "Presentation":
         ...
 
+    @classmethod
+    def new(cls) -> "Presentation":
+        ...
+
     def save(self, path: str) -> None:
         ...
 
@@ -41,6 +45,9 @@ class Presentation:
         ...
 
     def replace_text(self, needle: str, replacement: str) -> int:
+        ...
+
+    def add_slide(self) -> "Slide":
         ...
 
 class Slides:
@@ -66,6 +73,9 @@ class Slide:
         ...
 
     def copy_to(self, presentation: Presentation) -> "Slide":
+        ...
+
+    def add_textbox(self, text: str, name: str | None = None) -> "Shape":
         ...
 
 class Shapes:
