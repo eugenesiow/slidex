@@ -18,6 +18,12 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "maturin>=1.5",
+    "pytest>=7.0",
+]
+
 [tool.maturin]
 module-name = "slidex._core"
 python-source = "python"

@@ -13,7 +13,7 @@ tooling, and project conventions.
 
 ```bash
 uv venv
-uv pip install maturin pytest
+uv pip install -e .[dev]
 uv run maturin develop
 ```
 
@@ -28,7 +28,7 @@ uv run -s scripts/test_all.py
 Python tests:
 
 ```bash
-uv run pytest tests/python
+uv run -s scripts/test_python.py
 ```
 
 Rust tests (core only):
