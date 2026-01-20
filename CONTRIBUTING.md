@@ -81,11 +81,12 @@ python tools/fixture_compare/compare_pptx.py \
 1. Create a PyPI API token at https://pypi.org/manage/account/token/
 2. Add the token as a GitHub repository secret named `PYPI_API_TOKEN`.
 3. Tag and publish a GitHub Release.
-4. The `Publish` workflow will build and upload wheels + sdist via maturin.
+4. The `Publish` workflow will download the CI-built artifacts and upload them via `uv publish`.
 
 Notes:
 - The workflow is in `.github/workflows/publish.yml`.
-- Uploads use `maturin publish --skip-existing`.
+- Uploads use `uv publish dist/*`.
+- Artifacts are reused from the successful `CI` workflow run for the release commit.
 
 ## Pull requests
 

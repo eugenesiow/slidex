@@ -3,7 +3,6 @@ from slidex import Presentation
 
 def main() -> None:
     pres = Presentation.open("deck.pptx")
-    pres.replace_text("{{quarter}}", "Q1 2026")
 
     slide = pres.slides[0]
     shape = slide.shapes[0]

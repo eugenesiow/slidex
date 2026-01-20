@@ -5,6 +5,7 @@ use quick_xml::events::Event;
 use quick_xml::Reader;
 
 use crate::core::{CoreError, Result};
+use crate::opc::constants::relationship_type;
 use crate::core::xml::local_name;
 
 pub fn parse_relationships(bytes: &[u8]) -> Result<HashMap<String, String>> {
@@ -46,7 +47,8 @@ pub fn append_relationship(rels_xml: &[u8], rel_id: &str, target: &str) -> Resul
         .map_err(|_| CoreError::InvalidPackage("rels not utf-8"))?;
     let marker = "</Relationships>";
     let insert = format!(
-        "<Relationship Id=\"{rel_id}\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide\" Target=\"{target}\"/>"
+        "<Relationship Id=\"{rel_id}\" Type=\"{}\" Target=\"{target}\"/>",
+        relationship_type::SLIDE
     );
     if let Some(pos) = xml_text.find(marker) {
         let mut out = String::with_capacity(xml_text.len() + insert.len());

@@ -34,6 +34,15 @@ from slidex import Presentation
 pres = Presentation.open("deck.pptx")
 pres.replace_text("{{quarter}}", "Q1 2026")
 
+pres.save("updated.pptx")
+```
+
+Basic read, modify with shapes, write flow:
+
+```python
+from slidex import Presentation
+
+pres = Presentation.open("deck.pptx")
 slide = pres.slides[0]
 shape = slide.shapes[0]
 text = shape.as_text()

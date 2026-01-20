@@ -23,19 +23,9 @@ impl Presentation {
     }
 
     pub fn new() -> Result<Self> {
-        let candidates = [
-            "assets/blank.pptx",
-            "tests/fixtures/generated/simple/title_and_content.pptx",
-        ];
-        for candidate in candidates {
-            if std::path::Path::new(candidate).exists() {
-                let package = Package::open(candidate)?;
-                return Self::from_package(package);
-            }
-        }
-        Err(crate::core::CoreError::InvalidPackage(
-            "missing template PPTX for Presentation::new; run fixture generator",
-        ))
+        const BLANK_PPTX: &[u8] = include_bytes!("../../assets/blank.pptx");
+        let package = Package::from_bytes(BLANK_PPTX)?;
+        Self::from_package(package)
     }
 
     pub fn save(&self, _path: &str) -> Result<()> {
