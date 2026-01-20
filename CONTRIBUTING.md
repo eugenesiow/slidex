@@ -76,6 +76,17 @@ python tools/fixture_compare/compare_pptx.py \
 - Add or update tests when behavior changes.
 - Prefer ASCII in source files unless required.
 
+## Publishing to PyPI (maintainers)
+
+1. Create a PyPI API token at https://pypi.org/manage/account/token/
+2. Add the token as a GitHub repository secret named `PYPI_API_TOKEN`.
+3. Tag and publish a GitHub Release.
+4. The `Publish` workflow will build and upload wheels + sdist via maturin.
+
+Notes:
+- The workflow is in `.github/workflows/publish.yml`.
+- Uploads use `maturin publish --skip-existing`.
+
 ## Pull requests
 
 - Describe the change and rationale.

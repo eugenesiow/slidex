@@ -8,14 +8,14 @@ version = "0.1.0"
 description = "Rust-backed Python library for reading and writing PPTX files."
 readme = "README.md"
 requires-python = ">=3.9"
-license = { text = "MIT" }
+license = { text = "Apache-2.0" }
 authors = [
     { name = "Slidex Contributors" },
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Rust",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: Apache Software License",
 ]
 
 [tool.maturin]
