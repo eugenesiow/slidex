@@ -19,6 +19,12 @@ uv run maturin develop
 
 ## Running tests
 
+All tests (Rust + Python):
+
+```bash
+uv run -s scripts/test_all.py
+```
+
 Python tests:
 
 ```bash

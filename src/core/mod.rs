@@ -1,6 +1,7 @@
 pub mod chart;
 pub mod excel;
 pub mod package;
+pub mod picture;
 pub mod presentation;
 pub mod relationships;
 pub mod shape;

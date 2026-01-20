@@ -13,6 +13,13 @@ pub struct ShapeDescriptor {
     pub kind: crate::core::shape::ShapeKind,
 }
 
+#[derive(Clone, Debug)]
+pub struct PictureInfo {
+    pub rel_id: Option<String>,
+    pub width: Option<u32>,
+    pub height: Option<u32>,
+}
+
 pub fn local_name(name: &[u8]) -> &[u8] {
     if let Some(pos) = name.iter().rposition(|b| *b == b':') {
         &name[pos + 1..]
@@ -468,6 +475,141 @@ pub fn shape_text(slide_xml: &[u8], shape_id: u32) -> Result<String> {
     }
 
     Ok(text)
+}
+
+pub fn picture_info(slide_xml: &[u8], shape_id: u32) -> Result<PictureInfo> {
+    let mut reader = Reader::from_reader(Cursor::new(slide_xml));
+    reader.config_mut().trim_text(true);
+    let mut buf = Vec::new();
+    let mut depth = 0usize;
+    let mut pic_depth = None;
+    let mut xfrm_depth = None;
+    let mut in_pic = false;
+    let mut in_target = false;
+    let mut in_xfrm = false;
+    let mut rel_id = None;
+    let mut width = None;
+    let mut height = None;
+
+    loop {
+        match reader.read_event_into(&mut buf) {
+            Ok(Event::Start(e)) => {
+                depth += 1;
+                let name = e.name().as_ref().to_vec();
+                if is_element(&name, b"pic") {
+                    in_pic = true;
+                    in_target = false;
+                    pic_depth = Some(depth);
+                }
+                if in_pic && is_element(&name, b"cNvPr") {
+                    for attr in e.attributes().flatten() {
+                        if local_name(attr.key.as_ref()) == b"id" {
+                            if let Ok(id) = attr.unescape_value()?.parse::<u32>() {
+                                if id == shape_id {
+                                    in_target = true;
+                                }
+                            }
+                        }
+                    }
+                }
+                if in_target && is_element(&name, b"blip") {
+                    for attr in e.attributes().flatten() {
+                        if local_name(attr.key.as_ref()) == b"embed" {
+                            rel_id = Some(attr.unescape_value()?.to_string());
+                        }
+                    }
+                }
+                if in_target && is_element(&name, b"xfrm") {
+                    in_xfrm = true;
+                    xfrm_depth = Some(depth);
+                }
+                if in_target && in_xfrm && is_element(&name, b"ext") {
+                    for attr in e.attributes().flatten() {
+                        match local_name(attr.key.as_ref()) {
+                            b"cx" => {
+                                if let Ok(value) = attr.unescape_value()?.parse::<u32>() {
+                                    width = Some(value);
+                                }
+                            }
+                            b"cy" => {
+                                if let Ok(value) = attr.unescape_value()?.parse::<u32>() {
+                                    height = Some(value);
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+            }
+            Ok(Event::Empty(e)) => {
+                let name = e.name().as_ref().to_vec();
+                if in_pic && is_element(&name, b"cNvPr") {
+                    for attr in e.attributes().flatten() {
+                        if local_name(attr.key.as_ref()) == b"id" {
+                            if let Ok(id) = attr.unescape_value()?.parse::<u32>() {
+                                if id == shape_id {
+                                    in_target = true;
+                                }
+                            }
+                        }
+                    }
+                }
+                if in_target && is_element(&name, b"blip") {
+                    for attr in e.attributes().flatten() {
+                        if local_name(attr.key.as_ref()) == b"embed" {
+                            rel_id = Some(attr.unescape_value()?.to_string());
+                        }
+                    }
+                }
+                if in_target && in_xfrm && is_element(&name, b"ext") {
+                    for attr in e.attributes().flatten() {
+                        match local_name(attr.key.as_ref()) {
+                            b"cx" => {
+                                if let Ok(value) = attr.unescape_value()?.parse::<u32>() {
+                                    width = Some(value);
+                                }
+                            }
+                            b"cy" => {
+                                if let Ok(value) = attr.unescape_value()?.parse::<u32>() {
+                                    height = Some(value);
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+            }
+            Ok(Event::End(e)) => {
+                let name = e.name().as_ref().to_vec();
+                if in_xfrm && is_element(&name, b"xfrm") {
+                    if xfrm_depth == Some(depth) {
+                        in_xfrm = false;
+                        xfrm_depth = None;
+                    }
+                }
+                if in_pic && is_element(&name, b"pic") {
+                    if pic_depth == Some(depth) {
+                        in_pic = false;
+                        in_target = false;
+                        pic_depth = None;
+                    }
+                }
+                if depth > 0 {
+                    depth -= 1;
+                }
+            }
+            Ok(Event::Eof) => break,
+            Err(err) => return Err(CoreError::Xml(err.to_string())),
+            _ => {}
+        }
+        buf.clear();
+    }
+
+    Ok(PictureInfo {
+        rel_id,
+        width,
+        height,
+    })
 }
 
 pub fn set_shape_text(slide_xml: &[u8], shape_id: u32, value: &str) -> Result<Vec<u8>> {

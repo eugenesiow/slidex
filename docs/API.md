@@ -147,8 +147,8 @@ class Shape:
 ```
 
 Status:
-- **Implemented (0.1)**: `id`, `name`, `type`, `as_text`
-- **Stub (0.1)**: `as_picture`, `as_chart`, `as_table`
+- **Implemented (0.1)**: `id`, `name`, `type`, `as_text`, `as_picture`
+- **Stub (0.1)**: `as_chart`, `as_table`
 
 ---
 
@@ -194,7 +194,7 @@ class Picture:
 ```
 
 Status:
-- **Stub (0.1)**: `width`, `height`, `replace`
+- **Implemented (0.1)**: `width`, `height` (EMU units), `replace`
 
 ---
 

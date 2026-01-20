@@ -2,6 +2,8 @@
 
 *Last updated: TBD*
 
+See `docs/PHASES.md` for the implementation checklist and current status.
+
 ---
 
 ## 1. Mission & Vision
@@ -19,7 +21,7 @@ Key priorities:
 
 The long-term vision:
 
-> “The Ruff-of-PowerPoint” — a batteries-included PDF/PPTX storytelling toolchain for Python.
+> “The Ruff-of-PowerPoint” — a batteries-included PPTX storytelling toolchain for Python.
 
 ---
 

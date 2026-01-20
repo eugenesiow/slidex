@@ -27,6 +27,8 @@ tests/fixtures/
 - `generated/simple/text_only.pptx`: Single slide with multiple text boxes and
   runs. Use for replace-text coverage and edge cases (multiple runs per
   paragraph).
+- `generated/simple/picture_simple.pptx`: Single slide with one embedded PNG.
+  Use for picture detection and binary replace workflows.
 - `generated/simple/*`: Generated via `tools/fixture_gen/generate_fixtures.py`
   using `python-pptx` (dev-only). Use for baseline fixtures that are easy to
   regenerate.

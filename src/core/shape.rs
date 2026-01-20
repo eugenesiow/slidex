@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::core::{chart::ChartRef, package::Package, table::TableRef, text::TextRef};
+use crate::core::{chart::ChartRef, package::Package, picture::PictureRef, table::TableRef, text::TextRef};
 use crate::core::xml::ShapeDescriptor;
 
 #[derive(Clone, Debug)]
@@ -48,6 +48,18 @@ impl ShapeRef {
     pub fn as_text(&self) -> Option<TextRef> {
         if self.kind == ShapeKind::Text {
             Some(TextRef::new(
+                &self.slide_path,
+                self.id,
+                self.package.clone(),
+            ))
+        } else {
+            None
+        }
+    }
+
+    pub fn as_picture(&self) -> Option<PictureRef> {
+        if self.kind == ShapeKind::Picture {
+            Some(PictureRef::new(
                 &self.slide_path,
                 self.id,
                 self.package.clone(),

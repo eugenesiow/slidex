@@ -2,6 +2,7 @@ use ::pyo3::prelude::*;
 use ::pyo3::types::PyList;
 
 use crate::core::shape::{ShapeKind, ShapeRef};
+use crate::core::picture::PictureRef;
 use crate::pyo3::{chart::PyChart, errors, table::PyTable, text::PyTextFrame};
 
 #[pyclass(name = "Shapes", unsendable)]
@@ -41,6 +42,7 @@ impl PyShapes {
         Ok(list.into_any().unbind())
     }
 
+    #[pyo3(signature = (r#type=None, name=None))]
     pub fn find(&self, r#type: Option<&str>, name: Option<&str>) -> PyResult<Vec<PyShape>> {
         let mut out = Vec::new();
         for shape in &self.items {
@@ -97,7 +99,11 @@ impl PyShape {
     }
 
     pub fn as_picture(&self) -> PyResult<PyPicture> {
-        Err(errors::not_implemented("Shape.as_picture"))
+        let picture = self
+            .shape
+            .as_picture()
+            .ok_or_else(|| errors::not_implemented("Shape.as_picture"))?;
+        Ok(PyPicture::new(picture))
     }
 
     pub fn as_chart(&self) -> PyResult<PyChart> {
@@ -110,22 +116,33 @@ impl PyShape {
 }
 
 #[pyclass(name = "Picture", unsendable)]
-pub struct PyPicture {}
+pub struct PyPicture {
+    picture: PictureRef,
+}
+
+impl PyPicture {
+    pub fn new(picture: PictureRef) -> Self {
+        Self { picture }
+    }
+}
 
 #[pymethods]
 impl PyPicture {
     #[getter]
     pub fn width(&self) -> PyResult<u32> {
-        Err(errors::not_implemented("Picture.width"))
+        let (width, _) = self.picture.dimensions().map_err(errors::to_py_err)?;
+        Ok(width.unwrap_or(0))
     }
 
     #[getter]
     pub fn height(&self) -> PyResult<u32> {
-        Err(errors::not_implemented("Picture.height"))
+        let (_, height) = self.picture.dimensions().map_err(errors::to_py_err)?;
+        Ok(height.unwrap_or(0))
     }
 
     pub fn replace(&self, _data: &Bound<'_, PyAny>) -> PyResult<()> {
-        Err(errors::not_implemented("Picture.replace"))
+        let bytes: Vec<u8> = _data.extract()?;
+        self.picture.replace(&bytes).map_err(errors::to_py_err)
     }
 }
 
